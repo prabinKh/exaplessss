@@ -787,11 +787,11 @@ def interestpayeduserlist(request):
 
 
 @login_required(login_url="/login/")
-
 def interestpayeddinamic(request, interest_uuid):
+    # Get the interest record for the user
     user = get_object_or_404(Interestpayed, interest_uuid=interest_uuid)
 
-    # Fetch and convert user attributes
+    # Fetch and convert user attributes (ensure float conversion for interest_amount and interest_rate)
     amount = float(user.interest_amount)
     interest_rate = float(user.interest_interest)
     time_to_give = int(user.interest_time_to_give)
@@ -804,15 +804,28 @@ def interestpayeddinamic(request, interest_uuid):
     # Fetch payment records associated with the interest_uuid
     payments = Interestandpayment.objects.filter(interestpaymentt_uuid=interest_uuid)
 
-    # Calculate total paid amount and interest
-    total_paid_amount = sum(payment.paymentpaid for payment in payments)
-    total_paid_interest = sum(payment.interestpaid for payment in payments)
+    # Calculate remaining amounts and interest
+    original_amount = float(user.interest_amount)
+    original_interest = float(total_interest)
+    remaining_amount = original_amount
+    remaining_interest = original_interest
 
-    # Calculate remaining amounts
-    remaining_amount = amount - total_paid_amount
-    remaining_interest = total_interest - total_paid_interest
+    table_data = []
+    for payment in payments:
+        remaining_amount -= float(payment.paymentpaid) if payment.paymentpaid else 0
+        remaining_interest -= float(payment.interestpaid) if payment.interestpaid else 0
+        table_data.append(
+            {
+                "date": payment.datess,
+                "amount": payment.paymentpaid,
+                "interest": payment.interestpaid,
+                "remainingamount": remaining_amount,
+                'remaininginterest': remaining_interest,
+                "uuid": payment.interestpaymentt_uuid,
+            }
+        )
 
-    # Prepare context
+    # Prepare context with payment and user data
     context = {
         "totalinterest": total_interest,
         "dailyinterest": daily_interest,
@@ -820,8 +833,7 @@ def interestpayeddinamic(request, interest_uuid):
         "interest_rate": interest_rate,
         "time_to_give": time_to_give,
         "payments": payments,
-        "remaining_amount": remaining_amount,  # Add remaining amount to the context
-        "remaining_interest": remaining_interest,  # Add remaining interest to the context
+        "table_data": table_data,
         "fname": user.interest_fname,
         "lname": user.interest_lname,
         "email": user.interest_email,
@@ -853,29 +865,30 @@ def interestpayeddinamic(request, interest_uuid):
             context['error'] = "Invalid date format. Please use YYYY-MM-DD."
             return render(request, "interestpayeddinamic.html", context)
 
-        # Create a new Interestandpayment instance
+        # Ensure remaining_amount and remaining_interest are calculated properly
+        remaining_amount -= float(payment_paid) if payment_paid else 0
+        remaining_interest -= float(interest_paid) if interest_paid else 0
+
+        # Check if remaining_amount or remaining_interest is below 0
+        if remaining_amount < 0 or remaining_interest < 0:
+            context['error'] = "Remaining amount or interest cannot be negative."
+            return render(request, "interestpayeddinamic.html", context)
+
+        # Create a new Interestandpayment instance (ensure float conversion)
         payment = Interestandpayment(
             interestpaymentt_uuid=interest_uuid,
-            interestpaid=float(interest_paid),  # Ensure these are floats
-            paymentpaid=float(payment_paid),
-            datess=payment_date_obj
+            interestpaid=float(interest_paid) if interest_paid else 0,
+            paymentpaid=float(payment_paid) if payment_paid else 0,
+            datess=payment_date_obj,
+            remaining_amount=remaining_amount,
+            remaining_interest=remaining_interest
         )
         payment.save()
 
-        # Update context with the new payments
-      
-
-        context.update({
-            "payments": payments,
-            "remaining_amount": remaining_amount,
-            "remaining_interest": remaining_interest,
-        })
-
-        return render(request, "interestpayeddinamic.html", context)
+        # Redirect to the same view after handling POST to prevent form resubmission
+        return redirect(reverse('interestpayeddinamic', args=[interest_uuid]))
 
     return render(request, "interestpayeddinamic.html", context)
-
-
 # dynamic search per user detail page
 @login_required(login_url="/login/")
 def dynamic_search_detail(request, uuid):
