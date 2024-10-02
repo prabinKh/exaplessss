@@ -212,6 +212,9 @@
     <hr>
    
     <table class="table table-bordered">
+      {% if error %}
+<div class="alert alert-danger">{{ error }}</div>
+{% endif %}
       <thead>
           <tr>
               <th>SN</th>
@@ -224,16 +227,16 @@
           </tr>
       </thead>
       <tbody>
-          {% for payment in payments %}
+          {% for payment in table_data %}
           <tr>
               <td>{{ forloop.counter }}</td>
-              <td>{{ payment.datess }}</td>
-              <td>{{ payment.paymentpaid|floatformat:2 }}</td>
-              <td>{{ payment.interestpaid|floatformat:2 }}</td>
-              <td>{{ remaining_amount|floatformat:2 }}</td>  <!-- Remaining amount from the view -->
-              <td>{{ remaining_interest|floatformat:2 }}</td>  <!-- Remaining interest from the view -->
+              <td>{{ payment.date }}</td>
+              <td>{{ payment.amount|floatformat:2 }}</td>
+              <td>{{ payment.interest|floatformat:2 }}</td>
+              <td>{{ payment.remainingamount|floatformat:2 }}</td>  <!-- Remaining amount from the view -->
+              <td>{{ payment.remaininginterest|floatformat:2 }}</td>  <!-- Remaining interest from the view -->
               <td>
-                  <a href="{% url 'paymentdoneperuser' payment.interestpaymentt_uuid %}">View</a>
+                  <a href="{% url 'paymentdoneperuser' payment.uuid %}">View</a>
               </td>
           </tr>
           {% endfor %}
@@ -350,4 +353,3 @@
   modalOverlay.addEventListener('click', closeModal);
 </script>
 {% endblock %}
-
