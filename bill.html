@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Details</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.24/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/1.7.1/css/buttons.dataTables.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/1.7.1/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+    <script src="https://cdn.datatables.net/buttons/1.7.1/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/1.7.1/js/buttons.print.min.js"></script>
+</head>
+<body>
+
+<div class="container">
+    <div class="row">
+        <!-- Back Button -->
+        <div class="col-12 mb-3">
+            <button onclick="window.history.back()" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back
+            </button>
+        </div>
+
+        <!-- DataTable Script -->
+        <div id="iconall" class="mb-3">
+            <script>
+                var idioma = {
+                    // Translations for DataTable
+                };
+            
+                $(document).ready(function() {
+                    $('#paymentTable').DataTable({
+                        "paging": true,
+                        "lengthChange": true,
+                        "searching": true,
+                        "ordering": true,
+                        "info": true,
+                        "autoWidth": true,
+                        "language": idioma,
+                        "lengthMenu": [[5, 10, 20, -1], [5, 10, 20, "Mostrar Todo"]],
+                        dom: 'Bfrtip',
+                        buttons: [
+                            {
+                                extend: 'copyHtml5',
+                                text: '<i class="fas fa-copy"></i> Copiar',
+                                className: 'btn btn-primary mr-1',
+                                exportOptions: {
+                                    columns: [0, 1, 2, 3, 4, 5] // Specify the columns order you want for copying
+                                }
+                            },
+                            {
+                                extend: 'pdfHtml5',
+                                text: '<i class="fas fa-file-pdf"></i> PDF',
+                                className: 'btn btn-danger mr-1',
+                                exportOptions: {
+                                    columns: [0, 1, 2, 3, 4, 5] // Specify the columns order for the PDF
+                                },
+                                customize: function (doc) {
+                                    doc.content[1].table.widths = ['*', '*', '*', '*', '*', '*']; // Adjust column widths if needed
+                                    doc.styles.title = {
+                                        color: '#4c8aa0',
+                                        fontSize: 30,
+                                        alignment: 'center'
+                                    };
+                                    doc.styles.tableHeader = {
+                                        fillColor: '#4c8aa0',
+                                        color: 'white',
+                                        alignment: 'center'
+                                    };
+                                    // Add any additional customization if needed for the PDF export
+                                }
+                            },
+                            {
+                                extend: 'csvHtml5',
+                                text: '<i class="fas fa-file-csv"></i> CSV',
+                                className: 'btn btn-info mr-1',
+                                exportOptions: {
+                                    columns: [0, 1, 2, 3, 4, 5] // Specify the columns order for the CSV export
+                                }
+                            },
+                            {
+                                extend: 'print',
+                                text: '<i class="fas fa-print"></i> Imprimir',
+                                className: 'btn btn-secondary mr-1',
+                                exportOptions: {
+                                    columns: [0, 1, 2, 3, 4, 5] // Specify the columns order for the print view
+                                }
+                            }
+                        ]
+                    });
+                });
+            </script>
+        </div>
+
+        <!-- Payment Table -->
+        <div class="col-12">
+            <h3 class="titulo-tabla">Transaction Details</h3>
+
+            <!-- Display errors if any -->
+            {% if error %}
+                <div class="alert alert-danger">{{ error }}</div>
+            {% endif %}
+
+            <!-- Payment table -->
+            {% if table_data %}
+                <table id="paymentTable" class="table table-striped table-bordered" style="width:100%">
+                    <thead>
+                    <tr>
+                        <th>SN</th>
+                        <th>Paid Date</th>
+                        <th>Paid Amount</th>
+                        <th>Paid Interest</th>
+                        <th>Remaining Amount</th>
+                        <th>Remaining Interest</th>
+                        
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for payment in table_data %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ payment.datess|date:"Y-m-d" }}</td>
+                            <td>{{ payment.paymentpaid|floatformat:2 }}</td>
+                            <td>{{ payment.interestpaid|floatformat:2 }}</td>
+                            <td>{{ payment.remaining_amount|floatformat:2 }}</td>
+                            <td>{{ payment.remaining_interest|floatformat:2 }}</td>
+                        </tr>
+                    {% endfor %}
+                    
+
+                    
+
+                    <br>
+
+                    <tfoot>
+                        <tr>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th>Total Amount</th>
+                            <th>Total Interest </th>
+                        </tr>
+                       
+                        <tr>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td>{{amountintererst|floatformat:2 }}</td>
+                            <td>{{ total_iinterest|floatformat:2 }}</td>
+                        </tr>
+                   
+                    </tfoot>
+
+
+<!-- brake -->
+<tfoot>
+    <tr>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th>Remaining Amount</th>
+        <th>Remaining Interest</th>
+    </tr>
+    <tr>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td>{{ total_remaining_amount|floatformat:2 }}</td>
+        <td>{{ total_remaining_interest|floatformat:2 }}</td>
+    </tr>
+</tfoot>
+
+                    </tbody>
+                </table>
+            {% else %}
+                <p>No payment records found.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS (Optional) -->
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>
