@@ -133,7 +133,6 @@
     border-radius: 5px;
   }
 </style>
-
 <section class="section about-section gray-bg" id="about">
   <div class="container">
 
@@ -211,47 +210,39 @@
     
     <hr>
    
-    <div class="container">
-      <div class="row">
-        <div class="col-12">
-          <h3 class="titulo-tabla">Payment Details</h3>
-          
-          <!-- Display errors if any -->
-          {% if error %}
-            <div class="alert alert-danger">{{ error }}</div>
-          {% endif %}
-          
-          <!-- Payment table -->
-          <table id="paymentTable" class="table table-striped table-bordered" style="width:100%">
-            <thead>
-              <tr>
-                <th>SN</th>
-                <th>Paid Date</th>
-                <th>Paid Amount</th>
-                <th>Paid Interest</th>
-                <th>Remaining Amount</th>
-                <th>Remaining Interest</th>
-                <th>View</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for payment in table_data %}
-                <tr>
-                  <td>{{ forloop.counter }}</td>
-                  <td>{{ payment.date }}</td>
-                  <td>{{ payment.amount|floatformat:2 }}</td>
-                  <td>{{ payment.interest|floatformat:2 }}</td>
-                  <td>{{ payment.remainingamount|floatformat:2 }}</td>
-                  <td>{{ payment.remaininginterest|floatformat:2 }}</td>
-                  <td><a href="{% url 'paymentdoneperuser' payment.uuid %}">View</a></td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-    
+    <table class="table table-bordered">
+      {% if error %}
+<div class="alert alert-danger">{{ error }}</div>
+{% endif %}
+      <thead>
+          <tr>
+              <th>SN</th>
+              <th>Paid Date</th>
+              <th>Paid Amount</th>
+              <th>Paid Interest</th>
+              <th>Remaining Amount</th>
+              <th>Remaining Interest</th>
+              <th>View</th>
+          </tr>
+      </thead>
+      <tbody>
+          {% for payment in table_data %}
+          <tr>
+              <td>{{ forloop.counter }}</td>
+              <td>{{ payment.date }}</td>
+              <td>{{ payment.amount|floatformat:2 }}</td>
+              <td>{{ payment.interest|floatformat:2 }}</td>
+              <td>{{ payment.remainingamount|floatformat:2 }}</td>  <!-- Remaining amount from the view -->
+              <td>{{ payment.remaininginterest|floatformat:2 }}</td>  <!-- Remaining interest from the view -->
+              <td>
+
+                  <a href="{% url 'bill' payment.uuid %}">View</a>
+                  
+              </td>
+          </tr>
+          {% endfor %}
+      </tbody>
+  </table>
   
     <hr>
 
@@ -362,83 +353,4 @@
   // Event listener to close the modal when the overlay is clicked
   modalOverlay.addEventListener('click', closeModal);
 </script>
-<script>
-  var idioma = {
-    "sProcessing": "Procesando...",
-    "sLengthMenu": "Mostrar _MENU_ registros",
-    "sZeroRecords": "No se encontraron resultados",
-    "sEmptyTable": "Ningún dato disponible en esta tabla",
-    "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
-    "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
-    "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
-    "sSearch": "Buscar:",
-    "oPaginate": {
-      "sFirst": "Primero",
-      "sLast": "Último",
-      "sNext": "Siguiente",
-      "sPrevious": "Anterior"
-    },
-    "buttons": {
-      "copyTitle": "Información copiada",
-      "copySuccess": {
-        "_": "%d filas copiadas",
-        "1": "1 fila copiada"
-      }
-    }
-  };
-
-  $(document).ready(function() {
-    $('#paymentTable').DataTable({
-      "paging": true,
-      "lengthChange": true,
-      "searching": true,
-      "ordering": true,
-      "info": true,
-      "autoWidth": true,
-      "language": idioma,
-      "lengthMenu": [[5, 10, 20, -1], [5, 10, 20, "Mostrar Todo"]],
-      dom: 'Bfrtip',
-      buttons: [
-        {
-          extend: 'copyHtml5',
-          text: '<i class="fa fa-clipboard"></i> Copiar',
-          className: 'btn btn-app export barras'
-        },
-        {
-          extend: 'pdfHtml5',
-          text: '<i class="fa fa-file-pdf-o"></i> PDF',
-          className: 'btn btn-app export pdf',
-          customize: function(doc) {
-            doc.styles.title = {
-              color: '#4c8aa0',
-              fontSize: 30,
-              alignment: 'center'
-            };
-            doc.styles.tableHeader = {
-              fillColor: '#4c8aa0',
-              color: 'white',
-              alignment: 'center'
-            };
-          }
-        },
-        {
-          extend: 'excelHtml5',
-          text: '<i class="fa fa-file-excel-o"></i> Excel',
-          className: 'btn btn-app export excel'
-        },
-        {
-          extend: 'csvHtml5',
-          text: '<i class="fa fa-file-text-o"></i> CSV',
-          className: 'btn btn-app export csv'
-        },
-        {
-          extend: 'print',
-          text: '<i class="fa fa-print"></i> Imprimir',
-          className: 'btn btn-app export imprimir'
-        }
-      ]
-    });
-  });
-</script>
-
 {% endblock %}
