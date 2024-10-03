@@ -7,7 +7,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User as djangouser
 from django.core.paginator import Paginator
-from django.db.models import Q
+from django.db.models import Q,Sum
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
@@ -931,3 +931,70 @@ def dynamic_search_detail(request, uuid):
     }
 
     return render(request, "dynamicsearchdetail.html", context)
+
+
+# def bill(request, uuid):
+
+    
+#     # Fetch all payment details related to this uuid
+#     table_data = Interestandpayment.objects.filter(interestpaymentt_uuid=uuid).annotate(totaremaningamount=Sum("remaining_amount"),totalremaninginterest=Sum("remaining_interest"))
+#     print(table_data)
+    
+#     amountintererst = Interestpayed.objects.get(interest_uuid=uuid)
+#     amount = float(amountintererst.interest_amount)
+#     interest_rate = float(amountintererst.interest_interest)
+#     time_to_give = int(amountintererst.interest_time_to_give)
+
+#     total_interest = amount * (interest_rate / 100) * time_to_give / 12
+#     month_to_day = time_to_give * 30.44 
+#     daily_interest = total_interest / month_to_day if month_to_day else 0  
+
+
+                                                                                                                                                                                                                                                                                                                                                                                  
+#     print(table_data.totaremaningamount)
+#     print(table_data.totalremaninginterest)
+
+#     context={
+#         'table_data': table_data,
+#         "amountintererst":amount,
+#         'total_iinterest':total_interest
+        
+#         }
+
+    # Pass the filtered table data to the template
+    # return render(request, 'bill.html', context)
+
+
+def bill(request, uuid):
+    # Fetch the aggregate values
+    table_data = Interestandpayment.objects.filter(interestpaymentt_uuid=uuid)
+
+    # Aggregate remaining amounts and remaining interests
+    aggregate_data = table_data.aggregate(
+        total_remaining_amount=Sum("remaining_amount"),
+        total_remaining_interest=Sum("remaining_interest")
+    )
+
+    # Fetch amount and interest-related information
+    amountintererst = Interestpayed.objects.get(interest_uuid=uuid)
+    amount = float(amountintererst.interest_amount)
+    interest_rate = float(amountintererst.interest_interest)
+    time_to_give = int(amountintererst.interest_time_to_give)
+
+    total_interest = amount * (interest_rate / 100) * time_to_give / 12
+    month_to_day = time_to_give * 30.44 
+    daily_interest = total_interest / month_to_day if month_to_day else 0  
+
+    # Debugging print (you can remove these later)
+    print(aggregate_data)
+
+    # Pass the data to the template
+    context = {
+        'table_data': table_data,
+        'amountintererst': amount,
+        'total_iinterest': total_interest,
+        'total_remaining_amount': aggregate_data.get('total_remaining_amount', 0),
+        'total_remaining_interest': aggregate_data.get('total_remaining_interest', 0)
+    }
+
+    return render(request, 'bill.html', context)
